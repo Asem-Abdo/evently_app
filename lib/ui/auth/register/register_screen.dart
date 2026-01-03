@@ -1,9 +1,13 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:evently/model/my_user.dart';
 import 'package:evently/ui/auth/register/register_screen.dart';
 import 'package:evently/ui/widgets/custom_text_form_field.dart';
 import 'package:evently/utils/app_assets.dart';
 import 'package:evently/utils/app_colors.dart';
 import 'package:evently/utils/app_styles.dart';
+import 'package:evently/utils/dialog_utils.dart';
+import 'package:evently/utils/firebase_utils.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../home/home_screen.dart';
@@ -154,14 +158,69 @@ class RegisterScreen extends StatelessWidget {
     );
   }
 
-  void register(BuildContext context) {
+  void register(BuildContext context) async {
     if (formKey.currentState?.validate() == true) {
+      DialogUtils.showLoading(context: context);
+      try {
+        final credential = await FirebaseAuth.instance
+            .createUserWithEmailAndPassword(
+              email: emailController.text,
+              password: passwordController.text,
+            );
+        MyUser myUser = MyUser(
+          id: credential.user?.uid ?? '',
+          name: nameController.text,
+          email: emailController.text,
+        );
+        await FirebaseUtils.addUserToFireStore(myUser);
+        if (!context.mounted) return;
+        DialogUtils.hideLoading(context: context);
+        DialogUtils.showMsg(
+          title: "success".tr(),
+          posActionName: 'ok'.tr(),
+          context: context,
+          message: 'register successfully'.tr(),
+          posAction: () {
+            Navigator.pop(context);
+          },
+        );
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'weak-password') {
+          DialogUtils.hideLoading(context: context);
+          DialogUtils.showMsg(
+            title: "error".tr(),
+            posActionName: 'ok'.tr(),
+            context: context,
+            message: 'The password provided is too weak.'.tr(),
+          );
+        } else if (e.code == 'email-already-in-use') {
+          DialogUtils.hideLoading(context: context);
+          DialogUtils.showMsg(
+            title: "error".tr(),
+            posActionName: 'ok'.tr(),
+            context: context,
+            message: 'The account already exists for that email.'.tr(),
+          );
+        } else if (e.code == 'network-request-failed') {
+          DialogUtils.hideLoading(context: context);
+          DialogUtils.showMsg(
+            context: context,
+            message: 'Network error.'.tr(),
+            title: "error".tr(),
+            posActionName: 'ok'.tr(),
+          );
+        }
+      } catch (e) {
+        DialogUtils.hideLoading(context: context);
+        DialogUtils.showMsg(
+          context: context,
+          message: e.toString(),
+          title: "error".tr(),
+          posActionName: 'ok'.tr(),
+        );
+      }
     } else {
       return;
     }
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => HomeScreen()),
-    );
   }
 }

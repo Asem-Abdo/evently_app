@@ -1,17 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:evently/providers/app_language_provider.dart';
+import 'package:evently/providers/app_theme_provider.dart';
 import 'package:evently/providers/event_list_provider.dart';
+import 'package:evently/providers/user_provider.dart';
 import 'package:evently/ui/home/tabs/home_tab/widget/event_item.dart';
 import 'package:evently/ui/home/tabs/home_tab/widget/event_tab_item.dart';
 import 'package:evently/utils/app_assets.dart';
 import 'package:evently/utils/app_colors.dart';
 import 'package:evently/utils/app_styles.dart';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-import '../../../../model/event.dart';
-import '../../../../utils/firebase_utils.dart';
 
 class HomeTab extends StatefulWidget {
   HomeTab({super.key});
@@ -23,9 +22,13 @@ class HomeTab extends StatefulWidget {
 class _HomeTabState extends State<HomeTab> {
   @override
   Widget build(BuildContext context) {
+    var userProvider = Provider.of<UserProvider>(context);
     var eventListProvider = Provider.of<EventListProvider>(context);
+    var languageProvider = Provider.of<AppLanguageProvider>(context);
+    var themeProvider = Provider.of<AppThemeProvider>(context);
+
     if (eventListProvider.eventsList.isEmpty) {
-      eventListProvider.getAllEvents();
+      eventListProvider.getAllEvents(userProvider.currentUser!.id);
     }
     var height = MediaQuery.of(context).size.height;
     var width = MediaQuery.of(context).size.width;
@@ -40,27 +43,52 @@ class _HomeTabState extends State<HomeTab> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('welcome back', style: AppStyles.regular14White).tr(),
-                Text('Route academy', style: AppStyles.bold24White),
+                Text(
+                  userProvider.currentUser!.name,
+                  style: AppStyles.bold24White,
+                ),
               ],
             ),
             Spacer(),
-            ImageIcon(
-              AssetImage(AppAssets.iconTheme),
-              color: ThemeMode == ThemeMode.light
-                  ? AppColors.whiteColor
-                  : AppColors.goldColor,
-            ),
-            Container(
-              margin: EdgeInsets.only(left: width * .02),
-              padding: EdgeInsets.symmetric(
-                horizontal: width * .02,
-                vertical: height * .01,
+            InkWell(
+              onTap: () {
+                var newTheme = themeProvider.theme == ThemeMode.light
+                    ? ThemeMode.dark
+                    : ThemeMode.light;
+                themeProvider.changeTheme(newTheme);
+              },
+              child: ImageIcon(
+                AssetImage(AppAssets.iconTheme),
+                color: ThemeMode == ThemeMode.light
+                    ? AppColors.whiteColor
+                    : AppColors.goldColor,
               ),
+            ),
+            SizedBox(width: width * .01),
+            Container(
+              margin: EdgeInsets.only(left: width * .01),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8),
                 color: AppColors.whiteColor,
               ),
-              child: Text('EN', style: AppStyles.bold14Primary),
+              child: TextButton(
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: width * .02,
+                    vertical: height * .01,
+                  ),
+
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                onPressed: () {
+                  languageProvider.changeLanguage(
+                    context,
+                    languageProvider.language == 'en' ? 'ar' : 'en',
+                  );
+                },
+                child: Text('EN'.tr(), style: AppStyles.bold14Primary),
+              ),
             ),
           ],
         ),
@@ -79,7 +107,7 @@ class _HomeTabState extends State<HomeTab> {
                 children: [
                   Image.asset(AppAssets.unSelectedMapIcon),
                   SizedBox(width: width * .01),
-                  Text('Location', style: AppStyles.medium14White),
+                  Text('location'.tr(), style: AppStyles.medium14White),
                 ],
               ),
               SizedBox(height: 3),
@@ -93,7 +121,10 @@ class _HomeTabState extends State<HomeTab> {
                   tabAlignment: TabAlignment.start,
 
                   onTap: (index) {
-                    eventListProvider.changeSelectedIndex(index);
+                    eventListProvider.changeSelectedIndex(
+                      index,
+                      userProvider.currentUser!.id,
+                    );
                   },
                   tabs: eventListProvider.eventsNameList.map((eventName) {
                     return Tab(

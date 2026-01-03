@@ -160,4 +160,9 @@ class AppAssets {
   static const String google_icon = 'assets/images/google_icon.png';
   static const String title_icon = 'assets/images/title_icon.png';
   static const String location_icon = 'assets/images/location_icon.png';
+
+  static const String edit_icon = 'assets/images/edit.png';
+  static const String delete_icon = 'assets/images/delete.png';
+  static const String clender_icon = 'assets/images/clender.png';
+  static const String location = 'assets/images/location_pic.png';
 }

@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:evently/providers/event_list_provider.dart';
+import 'package:evently/providers/user_provider.dart';
 import 'package:evently/ui/widgets/custom_text_form_field.dart';
 import 'package:evently/utils/app_colors.dart';
 import 'package:evently/utils/app_styles.dart';
@@ -18,10 +19,13 @@ class FavoriteTab extends StatefulWidget {
 class _FavoriteTabState extends State<FavoriteTab> {
   TextEditingController searchController = TextEditingController();
   late EventListProvider eventListProvider;
+  late UserProvider userProvider;
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback(
-      (_) => eventListProvider.getAllFavoriteEventsFromFirestore(),
+      (_) => eventListProvider.getAllFavoriteEventsFromFirestore(
+        userProvider.currentUser!.id,
+      ),
     );
 
     super.initState();
@@ -30,11 +34,14 @@ class _FavoriteTabState extends State<FavoriteTab> {
   @override
   Widget build(BuildContext context) {
     eventListProvider = Provider.of<EventListProvider>(context);
+    userProvider = Provider.of<UserProvider>(context);
     var height = MediaQuery.of(context).size.height;
     var width = MediaQuery.of(context).size.width;
 
     if (eventListProvider.favoriteEventList.isEmpty) {
-      eventListProvider.getAllFavoriteEventsFromFirestore();
+      eventListProvider.getAllFavoriteEventsFromFirestore(
+        userProvider.currentUser!.id,
+      );
     }
     return SafeArea(
       child: Column(

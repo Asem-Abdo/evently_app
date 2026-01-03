@@ -1,14 +1,17 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:evently/providers/app_language_provider.dart';
 import 'package:evently/providers/app_theme_provider.dart';
+import 'package:evently/providers/event_list_provider.dart';
 import 'package:evently/ui/auth/login/login_screen.dart';
 import 'package:evently/ui/widgets/custom_elevated_botton.dart';
 import 'package:evently/utils/app_assets.dart';
 import 'package:evently/utils/app_colors.dart';
 import 'package:evently/utils/app_styles.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../providers/user_provider.dart';
 import '../../../../utils/language/language_bottom_sheet.dart';
 import '../../../../utils/theme/theme_bottom_sheet.dart';
 
@@ -33,6 +36,7 @@ class _ProfileTabState extends State<ProfileTab> {
 
   @override
   Widget build(BuildContext context) {
+    var userProvider = Provider.of<UserProvider>(context);
     var height = MediaQuery.of(context).size.height;
     var width = MediaQuery.of(context).size.width;
     var languageProvider = Provider.of<AppLanguageProvider>(context);
@@ -52,9 +56,15 @@ class _ProfileTabState extends State<ProfileTab> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Row Academy', style: AppStyles.bold24White),
+                Text(
+                  userProvider.currentUser!.name,
+                  style: AppStyles.bold24White,
+                ),
                 SizedBox(height: height * .001),
-                Text('routeAcademy@gmail.com', style: AppStyles.medium16White),
+                Text(
+                  userProvider.currentUser!.email,
+                  style: AppStyles.medium16White,
+                ),
               ],
             ),
           ],
@@ -139,9 +149,11 @@ class _ProfileTabState extends State<ProfileTab> {
               backGroundColor: AppColors.redColor,
               borderColor: AppColors.redColor,
               onPressed: () {
-                Navigator.pushReplacement(
-                  context,
+                Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(builder: (context) => LoginScreen()),
+                  (route) {
+                    return false;
+                  },
                 );
               },
               text: 'logout'.tr(),

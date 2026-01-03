@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:evently/model/event.dart';
 import 'package:evently/providers/event_list_provider.dart';
+import 'package:evently/providers/user_provider.dart';
 import 'package:evently/ui/home/tabs/home_tab/widget/event_tab_item.dart';
 import 'package:evently/ui/widgets/custom_date_or_time.dart';
 import 'package:evently/ui/widgets/custom_elevated_botton.dart';
@@ -8,10 +9,8 @@ import 'package:evently/utils/app_assets.dart';
 import 'package:evently/utils/app_colors.dart';
 import 'package:evently/utils/app_styles.dart';
 import 'package:evently/utils/firebase_utils.dart';
-import 'package:evently/utils/toast_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../../widgets/custom_text_form_field.dart';
 
 class AddEvent extends StatefulWidget {
@@ -123,6 +122,12 @@ class _AddEventState extends State<AddEvent> {
                 ),
                 SizedBox(height: height * .01),
                 CustomTextFormField(
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'please enter event title'.tr();
+                    }
+                    return null;
+                  },
                   controller: titleController,
                   prefixIcon: Image.asset(
                     AppAssets.title_icon,
@@ -139,6 +144,12 @@ class _AddEventState extends State<AddEvent> {
                 ),
                 SizedBox(height: height * .01),
                 CustomTextFormField(
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'please enter event description'.tr();
+                    }
+                    return null;
+                  },
                   controller: descriptionController,
                   hintText: 'event description'.tr(),
                   maxLines: 4,
@@ -245,22 +256,40 @@ class _AddEventState extends State<AddEvent> {
   }
 
   void addEvent() {
-    if (formKeys.currentState?.validate() == true) {
-      Event event = Event(
-        image: selectedImage,
-        title: titleController.text,
-        description: descriptionController.text,
-        eventName: selectedEventName,
-        dateTime: selectedDate!,
-        time: formatTime!,
-      );
-
-      FirebaseUtils.addEventToFireStore(event);
+    if (formKeys.currentState?.validate() == false) {
+      return;
+    }
+    if (selectedDate == null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('event added successfully'.tr())));
-      eventListProvider.getAllEvents();
-      Navigator.pop(context);
+      ).showSnackBar(SnackBar(content: Text('please choose event date'.tr())));
+      return;
     }
+    if (formatTime == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('please choose event time'.tr())));
+      return;
+    }
+
+    Event event = Event(
+      image: selectedImage,
+      title: titleController.text,
+      description: descriptionController.text,
+      eventName: selectedEventName,
+      dateTime: selectedDate!,
+      time: formatTime!,
+    );
+
+    var userProvider = Provider.of<UserProvider>(context, listen: false);
+    FirebaseUtils.addEventToFireStore(event, userProvider.currentUser!.id).then(
+      (value) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('event added successfully'.tr())),
+        );
+        eventListProvider.getAllEvents(userProvider.currentUser!.id);
+        Navigator.pop(context);
+      },
+    );
   }
 }

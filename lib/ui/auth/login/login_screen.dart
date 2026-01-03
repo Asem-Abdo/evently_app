@@ -1,12 +1,19 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:evently/model/my_user.dart';
+import 'package:evently/providers/event_list_provider.dart';
+import 'package:evently/providers/user_provider.dart';
 import 'package:evently/ui/auth/register/register_screen.dart';
 import 'package:evently/ui/home/home_screen.dart';
 import 'package:evently/ui/widgets/custom_text_form_field.dart';
 import 'package:evently/utils/app_assets.dart';
 import 'package:evently/utils/app_colors.dart';
 import 'package:evently/utils/app_styles.dart';
+import 'package:evently/utils/firebase_utils.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../../../utils/dialog_utils.dart';
 import '../../widgets/custom_elevated_botton.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -169,14 +176,86 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
-  void login(BuildContext context) {
+  void login(BuildContext context) async {
     if (formKey.currentState?.validate() == true) {
+      /// show loading
+      DialogUtils.showLoading(context: context);
+      try {
+        /// sign in firebase auth
+        final credential = await FirebaseAuth.instance
+            .signInWithEmailAndPassword(
+              email: emailController.text,
+              password: passwordController.text,
+            );
+
+        /// read user from firebase
+        var myUser = await FirebaseUtils.readUserFromFireStore(
+          credential.user?.uid ?? "",
+        );
+        if (myUser == null) {
+          return;
+        }
+        if (!context.mounted) return;
+
+        /// save user in provider
+        var userProvider = Provider.of<UserProvider>(context, listen: false);
+        userProvider.updateUser(myUser);
+
+        /// change selected index to start from All tab
+        var eventListProvider = Provider.of<EventListProvider>(
+          context,
+          listen: false,
+        );
+        eventListProvider.changeSelectedIndex(0, userProvider.currentUser!.id);
+
+        /// hide loading
+        DialogUtils.hideLoading(context: context);
+
+        /// show msg
+        DialogUtils.showMsg(
+          context: context,
+          message: 'login successfully'.tr(),
+          title: "success".tr(),
+          posActionName: 'ok'.tr(),
+          posAction: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => HomeScreen()),
+            );
+          },
+        );
+
+        /// get favorite events
+        eventListProvider.getAllFavoriteEvents(userProvider.currentUser!.id);
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'invalid-credential') {
+          DialogUtils.hideLoading(context: context);
+          DialogUtils.showMsg(
+            title: "error".tr(),
+            posActionName: 'ok'.tr(),
+            context: context,
+            message: 'The supplied auth credential is incorrect.'.tr(),
+          );
+        } else if (e.code == 'network-request-failed') {
+          DialogUtils.hideLoading(context: context);
+          DialogUtils.showMsg(
+            context: context,
+            message: 'Network error.'.tr(),
+            title: "error".tr(),
+            posActionName: 'ok'.tr(),
+          );
+        }
+      } catch (e) {
+        DialogUtils.hideLoading(context: context);
+        DialogUtils.showMsg(
+          context: context,
+          message: e.toString(),
+          title: "error".tr(),
+          posActionName: 'ok'.tr(),
+        );
+      }
     } else {
       return;
     }
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => HomeScreen()),
-    );
   }
 }

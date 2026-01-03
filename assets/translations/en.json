@@ -59,5 +59,21 @@
   "something went wrong" : "Something went wrong",
   "please choose date and time" : "Please choose date and time",
   "No Events Yet": "No Events Yet",
-  "event updated successfully" : "Event updated successfully"
+  "event updated successfully" : "Event updated successfully",
+  "loading..." : "Loading...",
+  "register successfully" : "Register Successfully",
+  "The password provided is too weak." : "The password provided is too weak.",
+  "The account already exists for that email.": "The account already exists for that email.",
+  "login successfully" : "Login Successfully",
+  "The supplied auth credential is incorrect." : "The supplied auth credential is incorrect.",
+  "Network error." : "Network error.",
+  "ok" : "Ok",
+  "success" : "Success",
+  "error" : "Error",
+  "EN" : "EN",
+  "event details" : "Event Details",
+  "please enter event title" : "Please enter event title",
+  "please enter event description" : "Please enter event description",
+  "please choose event date" : "Please choose event date",
+  "please choose event time" : "Please choose event time"
 }
