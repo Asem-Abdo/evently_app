@@ -75,5 +75,14 @@
   "please enter event title" : "Please enter event title",
   "please enter event description" : "Please enter event description",
   "please choose event date" : "Please choose event date",
-  "please choose event time" : "Please choose event time"
+  "please choose event time" : "Please choose event time",
+
+  "Are you sure you want to delete this event?" : "Are you sure you want to delete this event?",
+  "Delete": "Delete",
+  "No": "No",
+  "event deleted successfully" : "Event deleted successfully",
+  "Undo" : "Undo",
+  "edit event": "Edit Event",
+ "update event" : "update event"
+
 }

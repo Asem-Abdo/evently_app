@@ -8,8 +8,8 @@ class FirebaseUtils {
         .doc(userId)
         .collection(Event.eventCollection)
         .withConverter<Event>(
-          fromFirestore: (snapshot, _) => Event.fromJason(snapshot.data()!),
-          toFirestore: (event, _) => event.toJason(),
+          fromFirestore: (snapshot, _) => Event.fromJson(snapshot.data()!),
+          toFirestore: (event, _) => event.toJson(),
         );
   }
 
@@ -40,5 +40,13 @@ class FirebaseUtils {
     var docRef = eventsCollection.doc();
     event.id = docRef.id;
     return docRef.set(event);
+  }
+
+  static Future<void> deleteEventFromFireStore(String eventId, String userId) {
+    return getEventCollection(userId).doc(eventId).delete();
+  }
+
+  static Future<void> restoreEvent(String userId, Event event) {
+    return getEventCollection(userId).doc(event.id).set(event);
   }
 }

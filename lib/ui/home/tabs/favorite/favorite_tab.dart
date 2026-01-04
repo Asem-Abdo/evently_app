@@ -38,11 +38,6 @@ class _FavoriteTabState extends State<FavoriteTab> {
     var height = MediaQuery.of(context).size.height;
     var width = MediaQuery.of(context).size.width;
 
-    if (eventListProvider.favoriteEventList.isEmpty) {
-      eventListProvider.getAllFavoriteEventsFromFirestore(
-        userProvider.currentUser!.id,
-      );
-    }
     return SafeArea(
       child: Column(
         children: [

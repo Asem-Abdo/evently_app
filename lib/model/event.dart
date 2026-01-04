@@ -21,7 +21,7 @@ class Event {
     this.isFavorite = false,
   });
 
-  Event.fromJason(Map<String, dynamic> data)
+  Event.fromJson(Map<String, dynamic> data)
     : this(
         id: data['id'],
         image: data['image'],
@@ -33,7 +33,7 @@ class Event {
         isFavorite: data['isFavorite'],
       );
 
-  Map<String, dynamic> toJason() {
+  Map<String, dynamic> toJson() {
     return {
       'id': id,
       'image': image,

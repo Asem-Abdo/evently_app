@@ -23,6 +23,7 @@ class EventListProvider extends ChangeNotifier {
     'Holiday',
     'Eating',
   ];
+  Event? lastDeletedEvent;
   int selectedIndex = 0;
 
   void getAllEvents(String userId) async {
@@ -82,6 +83,7 @@ class EventListProvider extends ChangeNotifier {
       selectedIndex == 0 ? getAllEvents(userId) : getSpecificEvent(userId);
       getAllFavoriteEventsFromFirestore(userId);
     });
+    notifyListeners();
   }
 
   void getAllFavoriteEvents(String userId) async {
@@ -104,5 +106,26 @@ class EventListProvider extends ChangeNotifier {
       return doc.data();
     }).toList();
     notifyListeners();
+  }
+
+  void deleteEvent(Event event, String userId) async {
+    lastDeletedEvent = event;
+    await FirebaseUtils.deleteEventFromFireStore(event.id, userId);
+    eventsList.removeWhere((element) => element.id == event.id);
+    specificEventList.removeWhere((element) => element.id == event.id);
+    favoriteEventList.removeWhere((element) => element.id == event.id);
+    notifyListeners();
+  }
+
+  void undoDeleteEvent(String userId) async {
+    if (lastDeletedEvent == null) {
+      return;
+    }
+
+    await FirebaseUtils.restoreEvent(userId, lastDeletedEvent!);
+    lastDeletedEvent = null;
+
+    getAllEvents(userId);
+    getAllFavoriteEvents(userId);
   }
 }
