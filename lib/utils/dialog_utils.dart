@@ -26,7 +26,7 @@ class DialogUtils {
     Navigator.pop(context);
   }
 
-  static void showMsg({
+  static Future<void> showMsg({
     required BuildContext context,
     required String message,
     String? title,
@@ -35,7 +35,7 @@ class DialogUtils {
     String? negActionName,
     Function? negAction,
     bool barrierDismissible = true,
-  }) {
+  }) async {
     List<Widget>? actions = [];
     if (posActionName != null) {
       actions.add(
@@ -59,7 +59,7 @@ class DialogUtils {
         ),
       );
     }
-    showDialog(
+    return showDialog(
       barrierDismissible: barrierDismissible,
       context: context,
       builder: (context) {
